@@ -8,8 +8,6 @@ fp = open(filename)
 lines = fp.readlines()
 fp.close()
 
-
-
 ## Script to identify topics that are cross-listed with "Business"
 ## Doesn't really work, because we end up exlcuding only things like
 # "Style", because something that is "StyleTechnology" gets included
