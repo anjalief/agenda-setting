@@ -11,21 +11,12 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.decomposition import LatentDirichletAllocation
 from sklearn.externals import joblib
 
-parser = argparse.ArgumentParser()
-parser.add_argument('--article_glob')
-parser.add_argument('--stopwords')
-parser.add_argument('--lda_model')
-parser.add_argument('--force_train', action='store_true')
-parser.add_argument('--output_topic_distribution', action='store_true')
-args = parser.parse_args()
-
 NEW_ARTICLE_TOKEN="NEW - ARTICLE - TOKEN"
 
 def ArticleIter(filename):
   current_article = []
   print("Processing", filename)
   for line in open(filename):
-    #print(line)
     line = line.strip()
     if not line:
       continue
@@ -128,6 +119,14 @@ def SaveTopicWeights(article_index, topic_weights):
     out_f.write(" ".join((str(w) for w in weights)) + "\n")
 
 def main():
+  parser = argparse.ArgumentParser()
+  parser.add_argument('--article_glob')
+  parser.add_argument('--stopwords')
+  parser.add_argument('--lda_model')
+  parser.add_argument('--force_train', action='store_true')
+  parser.add_argument('--output_topic_distribution', action='store_true')
+  args = parser.parse_args()
+
   lda = None
   if args.force_train or not os.path.exists(args.lda_model):
     print("Loading articles")
