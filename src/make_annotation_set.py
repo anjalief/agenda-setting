@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
-from lda import LoadArticles
-from lda import NEW_ARTICLE_TOKEN
+from article_utils import LoadArticles
+from article_utils import NEW_ARTICLE_TOKEN
 
 import argparse
 import random

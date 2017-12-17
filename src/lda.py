@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 import argparse
 import collections
@@ -111,7 +111,7 @@ def MakeTfIdf(articles, stopwords):
 def SaveTopicWeights(article_index, topic_weights):
   current_file = None
   out_f = None
-  for (filename, article_num), weights in itertools.zip_longest(
+  for (filename, article_num), weights in itertools.izip_longest(
                                               article_index, topic_weights):
     if current_file != filename:
       current_file = filename
