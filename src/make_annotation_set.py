@@ -6,6 +6,7 @@ from article_utils import NEW_ARTICLE_TOKEN
 import argparse
 import random
 import io
+import glob
 
 NUM_SAMPLE = 100
 
@@ -13,16 +14,25 @@ def write_article(a_fp, l_fp, a, l):
     a_fp.write(NEW_ARTICLE_TOKEN + "\n")
     a_fp.write(a + "\n\n")
 
-    l_fp.write(str(l) + "\n")
+    l_fp.write(str(l).strip() + "\n")
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--article_glob')
     parser.add_argument('--tune_file_name')
     parser.add_argument('--test_file_name')
+    parser.add_argument('--label_file_exists', action='store_true')
     args = parser.parse_args()
 
     articles, article_index = LoadArticles(args.article_glob)
+    if args.label_file_exists:
+        labels = []
+        for filename in glob.iglob(args.article_glob):
+            l = open(filename + ".labels").readlines()
+            labels += l
+        article_index = labels
+
+    print len(articles), len(article_index)
 
     # choose 100 random articles as tuning and 100 as test
     ran = random.sample(zip(articles, article_index), NUM_SAMPLE * 2)

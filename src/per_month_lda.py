@@ -4,7 +4,7 @@ import argparse
 import collections
 import os
 import glob
-from article_utils import ArticleIter, LoadArticles, LoadVectors, Similarity
+from article_utils import LoadArticles, LoadVectors, Similarity, GetSimilarArticles
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--gold_vectors',

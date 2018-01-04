@@ -7,7 +7,7 @@ from scipy import spatial
 
 NEW_ARTICLE_TOKEN="NEW - ARTICLE - TOKEN"
 
-def ArticleIter(filename, verbose=False):
+def ArticleIter(filename, new_article_token, verbose=False):
   current_article = []
   if verbose:
     print("Processing", filename)
@@ -15,7 +15,7 @@ def ArticleIter(filename, verbose=False):
     line = line.strip()
     if not line:
       continue
-    if line == NEW_ARTICLE_TOKEN:
+    if line == new_article_token:
       if current_article:
         yield "\n".join(current_article)
         current_article = []
@@ -24,13 +24,13 @@ def ArticleIter(filename, verbose=False):
   if current_article:
     yield "\n".join(current_article)
 
-def LoadArticles(article_glob, verbose=True):
+def LoadArticles(article_glob, verbose=True, new_article_token=NEW_ARTICLE_TOKEN):
   articles = []
   article_index = []
   for filename in glob.iglob(article_glob):
     if verbose:
       print("Loading:", filename)
-    for index, article in enumerate(ArticleIter(filename, verbose)):
+    for index, article in enumerate(ArticleIter(filename, new_article_token, verbose)):
       articles.append(article)
       article_index.append((filename, index))
     if verbose:
@@ -64,3 +64,10 @@ def LoadVectors(filename):
     sqrt_length = math.sqrt(sum([n**2 for n in vector]) + 1e-6)
     vectors.append([n/sqrt_length for n in vector])
   return vectors
+
+def GetSimilarArticles(articles, vectors, gold_vector, threshold):
+  similar = []
+  for article, vector in zip(articles, vectors):
+    if Similarity(vector, gold_vector) < threshold:
+      similar.append(article)
+  return similar

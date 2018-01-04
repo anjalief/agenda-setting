@@ -108,14 +108,14 @@ def MakeTfIdf(articles, stopwords):
   return tfidf, vectorizer.get_feature_names()
 """
 
-def SaveTopicWeights(article_index, topic_weights):
+def SaveTopicWeights(article_index, topic_weights, suffix):
   current_file = None
   out_f = None
   for (filename, article_num), weights in itertools.izip_longest(
                                               article_index, topic_weights):
     if current_file != filename:
       current_file = filename
-      out_f = open(filename + ".lda", "w")
+      out_f = open(filename + suffix + ".lda", "w")
     out_f.write(" ".join((str(w) for w in weights)) + "\n")
 
 def main():
@@ -123,6 +123,8 @@ def main():
   parser.add_argument('--article_glob')
   parser.add_argument('--stopwords')
   parser.add_argument('--lda_model')
+  parser.add_argument('--outfile_suffix', default="")
+  parser.add_argument('--top_n_words', type=int, default=-1)
   parser.add_argument('--force_train', action='store_true')
   parser.add_argument('--output_topic_distribution', action='store_true')
   args = parser.parse_args()
@@ -145,7 +147,12 @@ def main():
     print("Estimating topic distributions")
     topic_weights = lda.GetTopicWeights(articles)
     print("Saving results")
-    SaveTopicWeights(article_index, topic_weights)
+    SaveTopicWeights(article_index, topic_weights, args.outfile_suffix)
+  if args.top_n_words > 0:
+    if not lda:
+      print("Loading model")
+      lda = LDA(load_from_file=args.lda_model)
+      lda.print_top_words(args.top_n_words)
 
 if __name__ == '__main__':
   main()
