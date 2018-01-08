@@ -24,12 +24,10 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/anjalief/gsl/lib
   --mode=fit \
   --rng_seed=0 \
   --initialize_lda=true \
-  --corpus_prefix=example/test \
-  --outname=example/model_run \
+  --corpus_prefix="${TEXT_DIR}/all" \
+  --outname="${TEXT_DIR}/output" \
   --top_chain_var=0.005 \
   --alpha=0.01 \
   --lda_sequence_min_iter=6 \
   --lda_sequence_max_iter=20 \
-  --lda_max_em_iter=10 \
-   "${TEXT_DIR}/dtm.out" \
-   "${TEXT_DIR}/mult.out"
+  --lda_max_em_iter=10

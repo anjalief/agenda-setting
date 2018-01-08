@@ -7,6 +7,36 @@ from scipy import spatial
 
 NEW_ARTICLE_TOKEN="NEW - ARTICLE - TOKEN"
 
+# This should cover all the topics, since these are the topics we kept
+# when we filtered the data
+
+all_topics = [ "Arts",
+               "RealEstate",
+               "Travel",
+               "Sports",
+               "HomeandGarden",
+               "Food",
+               "Business",
+               "Automobiles",
+               "DiningandWine",
+               "Movies",
+               "Obituaries",
+               "JobMarket",
+               "World",
+               "Theater",
+               "DiningWine",
+               "Science",
+               "Style",
+               "YourMoney",
+               "Autos",
+               "Washington",
+               "US",
+               "Books",
+               "Health",
+               "Education",
+               "Technology"
+               ]
+
 def ArticleIter(filename, new_article_token, verbose=False):
   current_article = []
   if verbose:
