@@ -24,7 +24,9 @@ MY_NEWS_DIR=/projects/tir1/users/anjalief/nyt_filtered
 # python baseline.py --labeled_data "${MY_TEST_DIR}/tune_file.txt.lda" --log_file test_baseline.out
 
 # MORE BASIC BASELINE
-# python baseline_country.py --article_glob "/projects/tir1/users/anjalief/nyt_filtered/*/*.txt.tok" --country_list "/projects/tir1/users/anjalief/annotated_nyt/countries_languages.txt"
+# python baseline_country.py --article_glob "/projects/tir1/users/anjalief/nyt_filtered/*/*.txt.tok" --country_list "/projects/tir1/users/anjalief/annotated_nyt/countries.txt"
+
+python baseline_country.py --labeled_data "${MY_TEST_DIR}/tune_file.txt" --country_list "${MY_TEST_DIR}/countries_languages.txt"
 
 # GATHER ARTICLES TO LOOK AT
-python get_article_sample.py --outfile "/projects/tir1/users/anjalief/annotated_nyt/baseline_external_articles" --article_glob "/projects/tir1/users/anjalief/nyt_filtered/*/*.txt.tok" --country_list "/projects/tir1/users/anjalief/annotated_nyt/countries_languages.txt"
+# python get_article_sample.py --outfile "/projects/tir1/users/anjalief/annotated_nyt/baseline_country_only" --article_glob "/projects/tir1/users/anjalief/nyt_filtered/*/*.txt.tok" --country_list "/projects/tir1/users/anjalief/annotated_nyt/countries.txt"

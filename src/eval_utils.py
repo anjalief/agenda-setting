@@ -28,7 +28,7 @@ class TrackCorrect():
         accuracy = float(self.total_correct) / self.count
         return precision, recall, accuracy, self.gold_external, self.count
 
-def LoadGold(filename, track_by_topic):
+def LoadGold(filename, track_by_topic = False):
     g = []
     for line in open(filename):
         vals = line.strip().split()
