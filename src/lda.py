@@ -44,6 +44,7 @@ def LoadStopwords(filename):
   stopwords = set()
   if not filename:
     return stopwords
+  print "Loading stopwords"
   for line in open(filename):
     for word in line.split():
       if word:
@@ -90,11 +91,13 @@ class LDA(object):
 
   def print_top_words(self, n_top_words=20):
     feature_names = self.model.vectorizer.get_feature_names()
+    fp = open("top_n_words.txt", "w")
     for topic_idx, topic in enumerate(self.model.lda.components_):
-      print("Topic #%d:" % topic_idx)
-      print(" ".join([feature_names[i]
+      fp.write("Topic #%d:\n" % topic_idx)
+      fp.write(" ".join([feature_names[i].encode('utf-8')
                       for i in topic.argsort()[:-n_top_words - 1:-1]]))
-    print()
+      fp.write("\n")
+    fp.close()
 
 
 """Not used

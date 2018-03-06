@@ -31,9 +31,9 @@ def main():
   out_f.write("\n")
   for filename in sorted(glob.iglob(args.per_month_glob)):
     dirname = os.path.dirname(filename)
-    year_month = os.path.basename(filename.replace(".txt.tok.lda", ""))
+    year_month = os.path.basename(filename.replace(".txt.tok.all.lda", ""))
     vectors = LoadVectors(filename)
-    articles, _ = LoadArticles(filename.replace(".lda", ""))
+    articles, _ = LoadArticles(filename.replace(".all.lda", ""))
     similar_articles = GetSimilarArticles(articles, vectors, gold_vector,
         args.similarity_threshold)
     out_f.write("{}\t{}\t{}\n".format(year_month, len(similar_articles), len(vectors)))

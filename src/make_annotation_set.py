@@ -1,35 +1,39 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
+
 # Pull a random sample of NUM_SAMPLE articles
-# If a label file exitsts, labels are split with the article samples
+# If a label file exists, labels are split with the article samples
 # If a country file is given, only include articles that contain
 # country names
 
 from article_utils import LoadArticles
 from article_utils import NEW_ARTICLE_TOKEN
 from baseline_country import get_countries, contains_country
+from russian_stemmer import country_russian_stemmer
 
 import argparse
 import random
 import io
 import glob
 
-NUM_SAMPLE = 100
-
-def write_article(a_fp, l_fp, a, l):
+def write_article(a_fp, l_fp, a, l, merge_labels):
+    if merge_labels:
+        a_fp.write(str(l).strip() + "\n")
     a_fp.write(NEW_ARTICLE_TOKEN + "\n")
-    a_fp.write(a + "\n\n")
+    a_fp.write(a + "\n")
+    a_fp.write("COUNTRIES IDENTIFIED: " + l[2] + "\n\n")
 
-    l_fp.write(str(l).strip() + "\n")
-
-def meets_criteria(article):
+    if not merge_labels:
+        l_fp.write(",".join(l[0:2]) + "\n")
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--article_glob')
-    parser.add_argument('--tune_file_name')
-    parser.add_argument('--test_file_name')
+    parser.add_argument('--file_name')
+    parser.add_argument('--num_samples')
+    parser.add_argument('--sample_size')
     parser.add_argument('--country_list')
     parser.add_argument('--label_file_exists', action='store_true')
+    parser.add_argument('--merge_labels', action='store_true')
     args = parser.parse_args()
 
     articles, article_index = LoadArticles(args.article_glob)
@@ -47,30 +51,31 @@ def main():
     if args.country_list:
         new_articles = []
         new_article_index = []
-        countries = get_countries(args.country_list)
+        stemmer = country_russian_stemmer()
+        countries = get_countries(args.country_list, stemmer)
         for a,i in zip(articles, article_index):
-            if contains_country(a.split(), countries):
+            contains, country_list = contains_country(a.split(), countries, stemmer)
+            if contains >= 2:
                 new_articles.append(a)
-                new_article_index.append(i)
+                text = " ".join(set(country_list))
+                new_article_index.append((str(i[0]), str(i[1]), text))
         articles = new_articles
         article_index = new_article_index
 
     print len(articles), len(article_index)
 
     # choose 100 random articles as tuning and 100 as test
-    ran = random.sample(zip(articles, article_index), NUM_SAMPLE * 2)
-    tune_a_fp = open(args.tune_file_name, 'w+')
-    tune_l_fp = open(args.tune_file_name + ".labels", 'w+')
-    test_a_fp = open(args.test_file_name, 'w+')
-    test_l_fp = open(args.test_file_name + ".labels", 'w+')
+    ran = random.sample(zip(articles, article_index), int(args.sample_size) * int(args.num_samples))
+    index = 0
+    for i in range(0, int(args.num_samples)):
+        articles_fp = open(args.file_name + str(i), 'w+')
+        labels_fp = open(args.file_name + str(i) + ".labels", 'w+')
 
-    count = 0
-    for i in ran:
-        if (count < NUM_SAMPLE):
-            write_article(tune_a_fp, tune_l_fp, i[0], i[1])
-        else:
-           write_article(test_a_fp, test_l_fp, i[0], i[1])
-        count += 1
+        for i in range(0, int(args.sample_size)):
+            write_article(articles_fp, labels_fp, ran[index][0], ran[index][1], args.merge_labels)
+            index += 1
+        articles_fp.close()
+        labels_fp.close()
 
 if __name__ == '__main__':
   main()

@@ -10,6 +10,7 @@ import argparse
 import os
 from eval_utils import TrackCorrect, LoadGold
 from russian_stemmer import country_russian_stemmer
+from russian_stemmer import country_english_stemmer
 
 def get_countries(filename, stemmer = None):
     country_glob = open(filename).read()
@@ -51,38 +52,23 @@ def main():
     countries = get_countries(args.country_list, stemmer)
 
     if args.article_glob:
-        dirname_to_count = {}
-        topic_to_count = {}
-        for t in all_topics:
-            topic_to_count[t] = (0,0)
+        article_to_count = {}
 
         articles, article_index = LoadArticles(args.article_glob)
 
         for a,i in zip(articles, article_index):
             words = a.split()
-            count_this_article = contains_country(words, countries, stemmer)
+            count_this_article, _ = contains_country(words, countries, stemmer)
+            count = 0
+            if count_this_article >= 2:
+                count = 1
 
-            dirname = os.path.dirname(i[0])
-            base_dirname = os.path.basename(dirname)
+            tup = article_to_count.get(i[0], (0,0))
+            article_to_count[i[0]] = (tup[0] + count, tup[1] + 1)
 
-            count = dirname_to_count.get(base_dirname, (0, 0))
-            dirname_to_count[base_dirname] = (count[0] + count_this_article,
-                                              count[1] + 1)
-
-            for t in all_topics:
-                if t in base_dirname:
-                    count = topic_to_count[t]
-                    topic_to_count[t] = (count[0] + count_this_article,
-                                         count[1] + 1)
-
-        fp = open("topics_to_count.txt", 'w')
-        for t in topic_to_count:
-            fp.write(t + " " + str(topic_to_count[t][0]) + " "  + str(topic_to_count[t][1]) + "\n")
-        fp.close()
-
-        fp = open("subtopics_to_count.txt", 'w')
-        for t in dirname_to_count:
-            fp.write(t + " " + str(dirname_to_count[t][0]) + " "  + str(dirname_to_count[t][1]) + "\n")
+        fp = open("article_to_count.txt", 'w')
+        for t in article_to_count:
+            fp.write(t + " " + str(article_to_count[t][0]) + " "  + str(article_to_count[t][1]) + "\n")
         fp.close()
 
     if args.labeled_data:
