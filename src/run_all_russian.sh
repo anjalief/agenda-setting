@@ -38,6 +38,9 @@ ${BASE_DIR}/src/lda.py \
     --output_topic_distribution --lda_model ${LDA_MODEL}
 #    --stopwords ${BASE_DIR}/data/stopwords/${_LANGUAGE_}_stopwords.txt \
 
+${BASE_DIR}/src/lda.py \
+    --top_n_words 30 -lda_model ${LDA_MODEL}
+
 
 # Print number of articles about external policy per year per newspaper
 MONTHS=(1 2 3 4 5 6 7 8 9 10 11 12)

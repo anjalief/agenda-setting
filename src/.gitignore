@@ -2,3 +2,5 @@ slurm*
 *.pyc
 *~
 outputs
+junk
+\#*\#

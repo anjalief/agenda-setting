@@ -1,3 +1,6 @@
 work
 russia_stats
 topic_stats
+*~
+models
+data/focused_crawl/russian/*.lda
