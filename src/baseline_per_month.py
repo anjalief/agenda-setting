@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 # Script to count the number of "external" articles
@@ -9,7 +9,7 @@ from article_utils import LoadArticles, all_topics
 import argparse
 import os
 from russian_stemmer import country_russian_stemmer, country_english_stemmer
-from baseline_country import get_countries, contains_country
+from country_utils import get_countries, contains_country#, english_ner_contains_country
 import glob
 from collections import defaultdict
 from nltk.stem.snowball import RussianStemmer, EnglishStemmer
@@ -75,7 +75,6 @@ def do_english(args):
     # count number of external articles in each file
     if args.article_glob:
         countries = get_countries(args.country_list, stemmer)
-        print countries
         month_year_to_count = defaultdict(int)
         month_year_to_external = defaultdict(int)
         for filename in glob.iglob(args.article_glob):
@@ -89,7 +88,37 @@ def do_english(args):
                     month_year_to_external[basename] += 1
                 month_year_to_count[basename] += 1
         fp = open(args.outfile, "w")
-        print month_year_to_count
+        for v in month_year_to_count:
+            fp.write("%s %d %d\n" % (v, month_year_to_external[v], month_year_to_count[v]))
+        fp.close()
+    if args.reformat:
+        pretty_format(args.outfile)
+
+def do_hindi(args):
+    import sys
+    sys.path.append("hindi_data")
+    from hindi_article_utils import ArticleIter
+    from nltk import tokenize
+
+    stemmer = country_english_stemmer()
+
+    # count number of external articles in each file
+    if args.article_glob:
+        countries = get_countries(args.country_list, stemmer)
+        month_year_to_count = defaultdict(int)
+        month_year_to_external = defaultdict(int)
+        for date,outlet,articles in ArticleIter(args.article_glob):
+            date_str = date.strftime("%m/%Y")
+            for a in articles:
+#                print tokenize.word_tokenize(a['body'])
+                i, c = contains_country(tokenize.word_tokenize(a['body']), countries, stemmer)
+#                english_ner_contains_country(a['body'])
+#                print i, c
+                if i >= 2:
+                     month_year_to_external[date_str] += 1
+                month_year_to_count[date_str] += 1
+        fp = open(args.outfile, "w")
+
         for v in month_year_to_count:
             fp.write("%s %d %d\n" % (v, month_year_to_external[v], month_year_to_count[v]))
         fp.close()
@@ -98,7 +127,6 @@ def do_english(args):
 
 
 def main():
-    print "START"
     parser = argparse.ArgumentParser()
     parser.add_argument('--article_glob')
     parser.add_argument('--country_list')
@@ -107,8 +135,9 @@ def main():
     args = parser.parse_args()
 
 # it's easier to just flip these as needed
-    do_russian(args)
+#    do_russian(args)
 #    do_english(args)
+    do_hindi(args)
 
 if __name__ == '__main__':
     main()

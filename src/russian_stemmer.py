@@ -53,7 +53,8 @@ class country_english_stemmer:
         words = word.split()
         l = []
         for word in words:
-            l.append(self.stemmer.stem(word.decode('utf-8')).encode('utf-8'))
+#            l.append(self.stemmer.stem(word.decode('utf-8')).encode('utf-8'))
+            l.append(self.stemmer.stem(word))
         return " ".join(l)
 
 
