@@ -1,5 +1,9 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 import argparse
 from article_utils import LoadArticles
+import time
+from requests.exceptions import HTTPError
 
 # SPACY
 import spacy
@@ -8,6 +12,9 @@ nlp = spacy.load('xx')
 # TEXTERRA
 from ispras import texterra
 tt = texterra.API('157be6a2aa25848a75284e3f43ab5c38af2f6974', 'texterra', 'v1')
+RUSSIA_NAMES = ["Россия", "русс", "СССР", 'страны', 'советской', 'Союзу', 'РФ']
+RUSSIA_NAMES = [x.lower()[0:min(4, len(x))] for x in RUSSIA_NAMES]
+print (RUSSIA_NAMES)
 
 def write_spacy(a, fp):
     doc = nlp(a)
@@ -18,6 +25,33 @@ def write_spacy(a, fp):
             already_found.add(ent.text)
             fp.write("\n")
     fp.write("***********************************************************************\n")
+
+
+def texterra_count_countries(a):
+    try:
+        doc = tt.namedEntitiesAnnotate(a)
+    except HTTPError as e:
+        print (e.response.status_code)
+        print (e.response)
+        print (e.response.headers)
+        exit
+        time.sleep(65)
+        doc = tt.namedEntitiesAnnotate(a)
+    found = set()
+    count = 0
+    for d in doc['annotations']['named-entity']:
+        # see list of tags below to add more
+        if d['value']['tag'] ==  "GPE_COUNTRY":
+            cut = d['text'][0:min(4, len(d['text']))].lower()
+            # we don't want to include Russia in external country names
+            if not cut in RUSSIA_NAMES:
+                count += 1
+                found.add(d['text'])
+        elif d['value']['tag'] == "LOCATION_CONTINENT":
+            count += 1
+            found.add(d['text'])
+    return count, found
+
 
 def write_texterra(a, fp):
     doc = tt.namedEntitiesAnnotate(a)

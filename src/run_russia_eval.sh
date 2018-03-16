@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source ~/venv/agenda_setting/bin/activate
+source activate py36
 MY_TEST_DIR=/projects/tir1/users/anjalief/annotated_russia
 MY_NEWS_DIR=/projects/tir1/users/anjalief/russian_news
 MONTHLY_NEWS_DIR=/projects/tir1/users/anjalief/russian_monthly
@@ -35,10 +35,10 @@ LDA_MODEL="${MY_BASE_DIR}/models/lda_russian.pkl"
 # # cp tune_pravda.txt.labels tune_pravda.txt.tok.labels
 # # [anjalief@tir annotated_russia]$
 
-# python baseline_country.py --labeled_data "${MY_TEST_DIR}/test_pravda.txt.tok" --country_list "${MY_TEST_DIR}/countries.txt" --lemmatize_russian
+python3 baseline_country.py --labeled_data "${MY_TEST_DIR}/tune_pravda.txt.tok" --country_list "${MY_TEST_DIR}/countries.txt" # --lemmatize_russian
 
-# echo "IZVESTIA"
-# python baseline_country.py --labeled_data "${MY_TEST_DIR}/test_isvestiia.txt.tok" --country_list "${MY_TEST_DIR}/countries.txt" --lemmatize_russian
+echo "IZVESTIA"
+python3 baseline_country.py --labeled_data "${MY_TEST_DIR}/tune_isvestiia.txt.tok" --country_list "${MY_TEST_DIR}/countries.txt" # --lemmatize_russian
 
 
 # python log_odds_ratio.py -f "/projects/tir1/users/anjalief/russian_news/*/2007.txt.tok" -s "/projects/tir1/users/anjalief/russian_news/*/2009.txt.tok" -c /projects/tir1/users/anjalief/annotated_russia/countries_languages.txt > logs_odds_09.txt
@@ -59,4 +59,4 @@ LDA_MODEL="${MY_BASE_DIR}/models/lda_russian.pkl"
 # ./baseline_per_month.py --outfile "russian_neg_sentiment.txt" --article_glob "${MONTHLY_NEWS_DIR}/*/*/*_*.txt.tok" --country_list "/home/anjalief/agenda-setting/ru.filtered.neg"
 
 # python baseline_per_month.py --outfile "russian_pos_sentiment.txt" --reformat
-python baseline_per_month.py --outfile "russian_neg_sentiment.txt" --reformat
+# python baseline_per_month.py --outfile "russian_neg_sentiment.txt" --reformat

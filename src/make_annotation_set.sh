@@ -6,7 +6,7 @@ ANNO_DIR=/projects/tir1/users/anjalief/annotated_russia
 
 
 # Build economic lexicon
-source ~/venv/agenda_setting/bin/activate
+source activate py36
 # python generate_counts.py
 # python log_odds_ratio.py -f business_counts.txt -s all_counts.txt  > nyt_business_odds.txt
 
@@ -37,10 +37,19 @@ source ~/venv/agenda_setting/bin/activate
 
 # python shuffle_sets.py --file1 "shuffled_2009_0.txt" --file2 "shuffled_2007_0.txt" --outfile "shuffled_0.txt"
 
-python shuffle_sets.py --file1 "${ANNO_DIR}/Izvestiia_2009_samples0" --file2 "${ANNO_DIR}/Izvestiia_2007_samples0" --shortestn 10 --outfile "${ANNO_DIR}/shuffled_Izvestiia0.txt"
+# python shuffle_sets.py --file1 "${ANNO_DIR}/Izvestiia_2009_samples0" --file2 "${ANNO_DIR}/Izvestiia_2007_samples0" --shortestn 10 --outfile "${ANNO_DIR}/shuffled_Izvestiia0.txt"
 
 
 # for a in 0 2 3 4 5 6 7
 # do
 #   python shuffle_sets.py --file1 "2007_samples${a}" --file2 "2009_samples${a}" --outfile "shuffled_${a}.txt"
 # done
+
+# Make annotation sets using NER
+./make_annotation_set.py --article_glob "${RUSSIA_ALL_NEWS}/Pravda/2007.txt.tok" --file_name Pravda_2007_ner_samples --num_samples 2 --sample_size 15 --downsample 3 --russian_ner
+
+# ./make_annotation_set.py --article_glob "${RUSSIA_ALL_NEWS}/Izvestiia/2007.txt.tok" --file_name Izvestiia_2007_ner_samples --num_samples 3 --sample_size 15 --downsample 4 --russian_ner
+
+# ./make_annotation_set.py --article_glob "${RUSSIA_ALL_NEWS}/Pravda/2009.txt.tok" --file_name Pravda_2009_ner_samples --num_samples 3 --sample_size 15 --downsample 4 --russian_ner
+
+# ./make_annotation_set.py --article_glob "${RUSSIA_ALL_NEWS}/Izvestiia/2009.txt.tok" --file_name Izvestiia_2009_samples --num_samples 3 --sample_size 15 --downsample 4 --russian_ner

@@ -12,6 +12,7 @@ from eval_utils import TrackCorrect, LoadGold
 from russian_stemmer import country_russian_stemmer
 from russian_stemmer import country_english_stemmer
 from country_utils import get_countries, contains_country
+from russian_ner import texterra_count_countries
 
 def main():
     parser = argparse.ArgumentParser()
@@ -53,7 +54,7 @@ def main():
         internal_country_count = []
         external_country_count = []
         for a,l in zip(articles, labels):
-            i, cl = contains_country(a.split(), countries, stemmer)
+            i, cl = texterra_count_countries(a)
             tracker.update(l.is_external, i >= 2)
 
             # count number of countries per article
@@ -69,16 +70,19 @@ def main():
                     fp.write(c + " ")
                 fp.write("\n\n")
                 fp.close()
+            elif i >= 2 and not l.is_external:
+                print (a, "\n")
+                print (cl, "\n\n\n")
 
         precision, recall, accuracy, gold_external, count = tracker.get_stats()
-        print precision, recall, accuracy, gold_external, count
-        print "EXTERNAL"
+        print (precision, recall, accuracy, gold_external, count)
+        print ("EXTERNAL")
         for i in external_country_count:
-            print i
+            print (i)
 
-        print "INTERNAL"
+        print ("INTERNAL")
         for i in internal_country_count:
-            print i
+            print (i)
 
 
 
