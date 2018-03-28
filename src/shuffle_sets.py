@@ -14,6 +14,7 @@ def main():
     parser.add_argument('--file2')
     parser.add_argument('--outfile')
     parser.add_argument('--shortestn', type=int)
+    parser.add_argument('--filenum', type=int, default=1)
     args = parser.parse_args()
 
 
@@ -34,13 +35,17 @@ def main():
         merged_set = set1 + set2
     random.shuffle(merged_set)
 
-    fp = open(args.outfile, "w")
-    fp_labels = open(args.outfile + ".labels", "w")
-
-    for a, i in merged_set:
-        fp.write(NEW_ARTICLE_TOKEN + "\n")
-        fp.write(a + "\n\n")
-        fp_labels.write(i + "\n")
+    # split the samples into specified number of files
+    num_per_file = len(merged_set) / args.filenum
+    for i in range(1, args.filenum + 1):
+        filename = args.outfile + "_part_" + str(i)
+        fp = open(filename, "w")
+        fp_labels = open(filename + ".labels", "w")
+        for j in range((i - 1) * num_per_file, i * num_per_file):
+            fp.write(NEW_ARTICLE_TOKEN + "\n")
+            fp.write(merged_set[j][0] + "\n\n")
+            fp_labels.write(merged_set[j][1] + "\n")
+        fp.close()
 
 if __name__ == "__main__":
     main()

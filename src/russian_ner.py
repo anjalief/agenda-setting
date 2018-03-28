@@ -7,11 +7,12 @@ from requests.exceptions import HTTPError
 
 # SPACY
 import spacy
-nlp = spacy.load('xx')
+# nlp = spacy.load('xx')
 
 # TEXTERRA
 from ispras import texterra
-tt = texterra.API('157be6a2aa25848a75284e3f43ab5c38af2f6974', 'texterra', 'v1')
+# tt = texterra.API('157be6a2aa25848a75284e3f43ab5c38af2f6974', 'texterra', 'v1')
+tt = texterra.API('54e427aefd76b64024d985c78fc84de0d4bd93b0', 'texterra', 'v1')
 RUSSIA_NAMES = ["Россия", "русс", "СССР", 'страны', 'советской', 'Союзу', 'РФ']
 RUSSIA_NAMES = [x.lower()[0:min(4, len(x))] for x in RUSSIA_NAMES]
 print (RUSSIA_NAMES)
