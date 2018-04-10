@@ -33,7 +33,7 @@ class country_russian_stemmer:
         l = []
         for word in words:
             # TO UNDO
-            l.append(self.stemmer.stem(word.decode('utf-8')).encode('utf-8'))
+            l.append(self.stem_helper(word.decode('utf-8')).encode('utf-8'))
         return " ".join(l)
 
 class country_english_stemmer:

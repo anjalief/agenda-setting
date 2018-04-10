@@ -4,6 +4,7 @@ import argparse
 from article_utils import LoadArticles
 import time
 from requests.exceptions import HTTPError
+import pickle
 
 # SPACY
 import spacy
@@ -53,6 +54,9 @@ def texterra_count_countries(a):
             found.add(d['text'])
     return count, found
 
+def annotate_texterra_articles(articles):
+    ner_tags = [tt.namedEntitiesAnnotate(a) for a in articles]
+    return ner_tags
 
 def write_texterra(a, fp):
     doc = tt.namedEntitiesAnnotate(a)
