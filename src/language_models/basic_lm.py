@@ -148,7 +148,7 @@ def main():
 
     # +1 for UNK
     vocab_size = len(dictionary) + 1
-    epochs = 10
+    epochs = 100
     embedding_dim = 100
     hidden_dim = 100
     print (vocab_size)

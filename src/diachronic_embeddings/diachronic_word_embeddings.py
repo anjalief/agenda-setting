@@ -49,27 +49,5 @@ def main():
             fp.close()
 
 
-    # load base model with
-    # model = gensim.models.Word2Vec.load("/usr1/home/anjalief/russian_model_cache/base_model.pickle")
-
-    # load vectors with
-    # from gensim.models import KeyedVectors
-    # wv = KeyedVectors.load("/usr1/home/anjalief/russian_model_cache/2007_2.pickle")
-
-    # similarity works for both:
-    # model.similarity('.', ',')
-    # wv.similarity('.', ',')
-
-
-    # wv2007 = KeyedVectors.load("/usr1/home/anjalief/russian_model_cache/2007_2.pickle")
-    # wv2009 = KeyedVectors.load("/usr1/home/anjalief/russian_model_cache/2009_2.pickle")
-
-    # wv2007.similarity("безработица", "Россия")
-    # 0.19267169714521806
-
-    # wv2009.similarity("безработица", "Россия")
-    # 0.13384728784281097
-
-
 if __name__ == "__main__":
     main()

@@ -51,29 +51,17 @@ def main():
             # We expected to see positive correlations for U.S. and negative correlations for Russia
             # (i.e. as Russia does worse, we talk more about how great Russia is and how bad
             # everywhere else is)
-            def process_step(keyword, context_words, sign):
-                if not keyword in wv:
-                    print ("NO EMBEDDING FOR COUNTRY", keyword)
-                    return False
-                total_sim = 0
-                word_count = len(context_words)
-                for w in context_words:
-                    if not w in wv:
-                        word_count -= 1
-                        continue
-                    total_sim += wv.similarity(keyword, w)
-                return (float(total_sim) / word_count) * sign
-
+            sign = 1
             to_remove = set()
             for keyword in keywords:
-                pos = process_step(keyword, pos_words, 1)
+                pos = get_similarity(keyword, pos_words, wv) * sign
 
                 # we're missing this country
                 if not pos:
                     to_remove.add(keyword)
                     continue
 
-                neg = process_step(keyword, neg_words, -1)
+                neg = get_similarity(keyword, neg_words, wv) * -1 * sign
                 l = keyword_to_score_sequence.get(keyword, [])
                 l.append(pos + neg)
                 keyword_to_score_sequence[keyword] = l
@@ -82,7 +70,6 @@ def main():
                 keywords.remove(c)
                 assert not c in keyword_to_score_sequence
 
-    # TODO calculate correlations
     for c in keyword_to_score_sequence:
         assert len(keyword_to_score_sequence[c]) == len(date_seq), \
             str(keyword_to_score_sequence[c]) + " " + str(date_seq)
@@ -95,6 +82,8 @@ def main():
         for k in keyword_to_score_sequence:
             corr = get_corr(keyword_to_score_sequence[k], gdp_seq)
             corrs.append((corr,k))
+            if k in ['Соединённых', 'Американцы', 'Америки', 'американцев', 'США']:
+                print (k, corr)
 
         corrs.sort(key=lambda x: x[0])
 
