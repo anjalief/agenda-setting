@@ -3,11 +3,13 @@
 # Need to run diachronic_word_embeddings to create
 # models before using this script
 
-# Input: list of keywords (country names)
-# Use EM algorithm to learn a set of countries and a set of words for which
+# Input: list of keywords (country names), # of clusters for knn
+# Learn a set of words for which
 # the similarity of country->word correlates with economic indicator
-# For each country, measure correlation of positive/negative words with economic indicators
-# Output learned country set and lexicon
+# Use KNN to generate possible lexicons, then compute similarity
+# between lexicons and keywords
+# output lexicon whose similarity to country name has strongest correlation
+# with economic indicator
 import gensim
 import argparse
 from gensim.models import KeyedVectors

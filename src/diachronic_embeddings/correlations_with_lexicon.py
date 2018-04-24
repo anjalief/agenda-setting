@@ -22,7 +22,7 @@ def main():
     parser.add_argument("--keywords", default="/usr1/home/anjalief/corpora/russian/countries.txt")
     parser.add_argument("--gdp_file", default="/usr1/home/anjalief/corpora/russian/russian_monthly_gdp.csv")
     parser.add_argument("--pos_lexicon", default="/usr1/home/anjalief/corpora/russian/ru.filtered.pos")
-    parser.add_argument("--neg_lexicon", default="/usr1/home/anjalief/corpora/russian/ru.filtered.neg")
+    parser.add_argument("--neg_lexicon") #default="/usr1/home/anjalief/corpora/russian/ru.filtered.neg")
     args = parser.parse_args()
 
     keywords = set(load_file(args.keywords))
@@ -54,17 +54,31 @@ def main():
             sign = 1
             to_remove = set()
             for keyword in keywords:
-                pos = get_similarity(keyword, pos_words, wv) * sign
+                # We may only have 1 lexicon. In that case, set similarity to 0
+                # for other lexicon
+                if pos_words:
+                    pos = get_similarity(keyword, pos_words, wv)
+                else:
+                    pos = 0
 
                 # we're missing this country
-                if not pos:
+                if pos is None:
                     to_remove.add(keyword)
                     continue
 
-                neg = get_similarity(keyword, neg_words, wv) * -1 * sign
+                if neg_words:
+                    neg = get_similarity(keyword, neg_words, wv)
+                else:
+                    neg = 0
+
+                if neg is None:
+                    to_remove.add(keyword)
+                    continue
+
                 l = keyword_to_score_sequence.get(keyword, [])
-                l.append(pos + neg)
+                l.append((pos * sign) - (neg * sign))
                 keyword_to_score_sequence[keyword] = l
+
             # skip countries that are not in vocab
             for c in to_remove:
                 keywords.remove(c)
@@ -81,16 +95,19 @@ def main():
         corrs = []
         for k in keyword_to_score_sequence:
             corr = get_corr(keyword_to_score_sequence[k], gdp_seq)
-            corrs.append((corr,k))
+            corrs.append((corr,k,keyword_to_score_sequence[k]))
             if k in ['Соединённых', 'Американцы', 'Америки', 'американцев', 'США']:
-                print (k, corr)
+                print (k, corr, keyword_to_score_sequence[k])
 
         corrs.sort(key=lambda x: x[0])
 
-        print ("TOP", corrs[:10])
+        print ("TOP")
+        for t in corrs[:10]:
+            print (t)
         print ()
-        print ("BOTTOM", corrs[-10:])
-        print ()
+        print ("BOTTOM")
+        for t in corrs[-10:]:
+            print (t)
 
 
 

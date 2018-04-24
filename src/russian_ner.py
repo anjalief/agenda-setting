@@ -18,7 +18,6 @@ from ispras import texterra
 # tt = texterra.API('3bf01c7fcdb1fc058a50d53d167aa82b4c85f811', 'texterra', 'v1')
 RUSSIA_NAMES = ["Россия", "русс", "СССР", 'страны', 'советской', 'Союзу', 'РФ']
 RUSSIA_NAMES = [x.lower()[0:min(4, len(x))] for x in RUSSIA_NAMES]
-print (RUSSIA_NAMES)
 
 class TexterraAnnotator():
     def __init__(self, api_start):
@@ -50,9 +49,7 @@ class TexterraAnnotator():
                 print(e)
                 ner_tags.append(self.tt.namedEntitiesAnnotate(a))
             except ReadTimeout as e:
-                # wait a few seconds a try again?
-                time.sleep(5)
-                ner_tags.append(self.tt.namedEntitiesAnnotate(a))
+                print ("SKIPPING", len(a), a[:min(10, len(a))])
         return ner_tags
 
 def write_spacy(a, fp):
@@ -104,6 +101,16 @@ def write_texterra(a, fp):
             fp.write(d['text'] + " " + d['value']['tag'] + "\n")
             already_found.add(d['text'])
     fp.write("***********************************************************************\n")
+
+def get_texterra_tags(annotations, tags):
+    text = set()
+    for entry in annotations:
+        if not "named-entity" in entry["annotations"]:
+            continue
+        for tag in entry["annotations"]["named-entity"]:
+            if tag['value']['tag'] in tags:
+                text.add(tag["text"])
+    return text
 
 def main():
     parser = argparse.ArgumentParser()

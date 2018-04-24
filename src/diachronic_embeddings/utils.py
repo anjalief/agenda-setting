@@ -9,7 +9,7 @@ YEARS = ["2003", "2004", "2005", "2006", "2007", "2008", "2009",
          "2010", "2011", "2012", "2013", "2014", "2015", "2016"]
 MONTHS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"]
 # YEARS = ["2003"]
-# MONTHS = ["1", "2", "3", "4"]
+# MONTHS = ["1", "2"]
 EMBEDDING_SIZE=100
 
 def get_model_filename(path, year, month):
@@ -61,7 +61,7 @@ def get_mean_similarity(keyword, context_words, wv):
 def get_similarity(keyword, context_words, wv):
     if not keyword in wv:
         print ("NO EMBEDDING FOR KEYWORD", keyword)
-        return False
+        return None
 
 #    return get_mean_similarity(keyword, context_words, wv)
     return get_pointwise_similarity(keyword, context_words, wv)

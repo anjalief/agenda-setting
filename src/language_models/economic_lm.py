@@ -46,7 +46,9 @@ class BasicLM(nn.Module):
         return (autograd.Variable(torch.zeros(1, 1, self.hidden_dim)),
                 autograd.Variable(torch.zeros(1, 1, self.hidden_dim)))
 
-    def forward(self, document, econ_data):
+    def forward(self, input_tuple):
+        document = input_tuple[0]
+        econ_data = input_tuple[1]
         # look up embeddings for each word in the document
         embeds = self.word_embeddings(document)
 
@@ -104,7 +106,7 @@ def train(vocab_size, num_epochs, data, econ_data, train_indices, test_indices, 
             econ_input = to_float_variable(econ_data[idx], False)
 
             # Step 3. Run our forward pass.
-            predicted_document = model(doc_input, econ_input)
+            predicted_document = model((doc_input, econ_input))
 
             # Step 4. Compute the loss, gradients, and update the parameters by
             #  calling optimizer.step()
@@ -128,7 +130,8 @@ def train(vocab_size, num_epochs, data, econ_data, train_indices, test_indices, 
         for idx in test_indices:
             test_word_count += len(data[idx])
             doc_input = to_variable(data[idx])
-            predicted_document = model(doc_input)
+            econ_input = to_float_variable(econ_data[idx], True)
+            predicted_document = model((doc_input, econ_input))
             lossy = loss_function(predicted_document, doc_input)
             test_perplexity += lossy.data[0] * len(doc_input)
 
