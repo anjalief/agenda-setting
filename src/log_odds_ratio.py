@@ -1,9 +1,11 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 from collections import defaultdict
 import math
 import argparse
 from article_utils import LoadArticles, LoadVectors
-from baseline_country import get_countries, contains_country
+#from baseline_country import get_countries, contains_country
 
 # Dan Jurafsky March 22 2013
 # bayes.py
@@ -21,6 +23,8 @@ parser.add_argument('-f','--first', help='Description for first counts file ', d
 parser.add_argument('-s','--second', help='Description for second counts file', default='badreviews.out')
 parser.add_argument('-p','--prior', help='Description for prior counts file')
 parser.add_argument('-c','--country_list', help='If specified, filter by baseline')
+parser.add_argument('--single_country', help='If specified, use corpus1 has country and corpus2 does not')
+parser.add_argument('--outfile', default="out.txt")
 parser.add_argument('--min_count', default=0)
 parser.add_argument('--stopwords')
 args = parser.parse_args()
@@ -55,11 +59,27 @@ def LoadFilteredCounts(articles, countries, prior):
       prior[w] += 1
   return result, prior
 
+def LoadSplitCounts(articles, country):
+  result1 = defaultdict(int)
+  result2 = defaultdict(int)
+  prior = defaultdict(int)
+  for a in articles:
+    words = a.split()
+    yes = country in words
+    for w in words:
+      w = w.lower()
+      if yes:
+        result1[w] += 1
+      else:
+        result2[w] += 1
+      prior[w] += 1
+  return result1, result2, prior
+
 stopwords = set()
 if args.stopwords:
   stopwords = LoadStopwords(args.stopwords)
 else:
-  print "Not using stopwords"
+  print ("Not using stopwords")
 
 # this means we want to filter, only take articles that have country names
 if (args.country_list):
@@ -70,6 +90,11 @@ if (args.country_list):
   counts1, prior = LoadFilteredCounts(articles1, countries, defaultdict(int))
   articles2, _ = LoadArticles(args.second)
   counts2, prior = LoadFilteredCounts(articles2, countries,  prior)
+
+elif args.single_country:
+  # take all articles with country name as corpus 1 and articles without as corpus 2
+  articles1, _ = LoadArticles(args.first)
+  counts1, counts2, prior = LoadSplitCounts(articles1, args.single_country)
 
 else:
   counts1 = LoadCounts(args.first, 0, stopwords)
@@ -115,9 +140,9 @@ for word in prior.keys():
         sigma[word] =  math.sqrt(sigmasquared[word])
         delta[word] = ( math.log(l1) - math.log(l2) ) / sigma[word]
 
-outfile = open("log_odds_09.txt", 'w')
+outfile = open(args.outfile, 'w')
 for word in sorted(delta, key=delta.get):
-    outfile.write(word.encode('utf-8'))
+    outfile.write(word)
     outfile.write(" %.3f\n" % delta[word])
 
 outfile.close()

@@ -6,8 +6,18 @@ import math
 from scipy.stats.stats import pearsonr
 from scipy import spatial
 from datetime import date
+from collections import defaultdict
 
 NEW_ARTICLE_TOKEN="NEW - ARTICLE - TOKEN"
+
+YEARS = ["2003", "2004", "2005", "2006", "2007", "2008", "2009",
+         "2010", "2011", "2012", "2013", "2014", "2015", "2016"]
+MONTHS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"]
+# YEARS = ["2008"]
+# MONTHS = ["10", "11", "12"]
+YEARS = ["1995", "1996", "1997", "1998", "1999", "2000", "2001", "2002",
+  "2003", "2004", "2005", "2006", "2007", "2008", "2009",
+         "2010", "2011", "2012", "2013", "2014", "2015", "2016"]
 
 # This should cover all the topics, since these are the topics we kept
 # when we filtered the data
@@ -149,4 +159,124 @@ def get_date(file_path):
 # Return year and Q1, Q2, Q3, Q4
 def get_quarter(file_path):
   year, month = get_year_month(file_path)
-  return year, (month / 4) + 1
+  return year, ((month - 1) / 3) + 1
+
+# return a date sequence and a list of lists, that groups files
+# in the same month together (ex. Izvestiia and Pravda 1/2004)
+def get_monthly_filenames(input_path, suffix=".txt.tok"):
+    date_seq = []
+    filenames = [] # list of lists, grouped by date
+    for year in YEARS:
+        for month in MONTHS:
+            file_glob = input_path + year + "_" + month + suffix
+            for filename in glob.iglob(file_glob):
+                date_seq.append(date(int(year), int(month), 1))
+                filenames.append([filename])
+    return date_seq, filenames
+
+def quarter_to_month(q):
+  # 1 2 3
+  if q == 1:
+    return 1
+  # 4 5 6
+  if q == 2:
+    return 4
+  # 7 8 9
+  if q == 3:
+    return 7
+  if q == 4:
+    return 10
+
+# return a date sequence and a list of lists, that groups files
+# in the same quarter together (ex. Jan, Feb, March 2003; Izvestiia and Pravda)
+def get_quarterly_filenames(input_path, suffix=".txt.tok"):
+    quarter_to_filenames = defaultdict(list)
+
+    for year in YEARS:
+        for month in MONTHS:
+            file_glob = input_path + year + "_" + month + suffix
+            for filename in glob.iglob(file_glob):
+                y, quarter = get_quarter(filename)
+                key = date(int(y), quarter_to_month(int(quarter)), 1)
+                quarter_to_filenames[key].append(filename)
+
+    date_seq = []
+    filenames = []
+    for key in sorted(quarter_to_filenames):
+        date_seq.append(key)
+        filenames.append(quarter_to_filenames[key])
+    return date_seq, filenames
+
+
+# return a date sequence and a list of lists, that groups files
+# in the same quarter together (ex. Jan, Feb, March 2003; Izvestiia and Pravda)
+def get_semi_filenames(input_path, suffix=".txt.tok"):
+    semi_to_filenames = defaultdict(list)
+
+    # STOP USING HARD CODED YEARS
+    file_glob = input_path + "*_*" + suffix
+    for filename in glob.iglob(file_glob):
+      y,month = get_year_month(filename)
+      if int(month) < 7:
+        semi = 1
+      else:
+        semi = 7
+      key = date(int(y), semi, 1)
+      semi_to_filenames[key].append(filename)
+
+    date_seq = []
+    filenames = []
+    for key in sorted(semi_to_filenames):
+        date_seq.append(key)
+        filenames.append(semi_to_filenames[key])
+    return date_seq, filenames
+
+def get_yearly_filenames(input_path, suffix=".txt.tok"):
+    year_to_filenames = defaultdict(list)
+
+    # I fear I am breaking all my code with this
+    file_glob = input_path + "*" + suffix
+    print(file_glob)
+#        file_glob = input_path + year + suffix
+    for filename in glob.iglob(file_glob):
+      year = os.path.basename(filename).split(".")[0].split("_")[0]
+      key = date(int(year), 1, 1)
+      year_to_filenames[key].append(filename)
+
+    date_seq = []
+    filenames = []
+    for key in sorted(year_to_filenames):
+        date_seq.append(key)
+        filenames.append(year_to_filenames[key])
+    return date_seq, filenames
+
+def get_ordered_files(input_path):
+  article_glob = os.path.join(input_path + "*")
+  date_to_name = {}
+  for filename in glob.iglob(article_glob):
+    try:
+      year, month = get_year_month(filename)
+      date_to_name[date(year, month, 1)] = filename
+    # we might have other junk in the folder (ex. base_model)
+    except:
+      continue
+
+  date_seq = []
+  filenames = []
+  for key in sorted(date_to_name):
+    date_seq.append(key)
+    filenames.append(date_to_name[key])
+  return date_seq, filenames
+
+def get_files_by_time_slice(input_path, timestep, suffix=".txt.tok"):
+    if timestep == "monthly":
+        date_seq, filenames = get_monthly_filenames(input_path, suffix)
+    elif timestep == "quarterly":
+        date_seq, filenames = get_quarterly_filenames(input_path, suffix)
+    elif timestep == "semi":
+        date_seq, filenames = get_semi_filenames(input_path, suffix)
+    else:
+        assert (timestep == "yearly")
+        date_seq, filenames = get_yearly_filenames(input_path, suffix)
+    assert (len(date_seq) == len(filenames))
+    return date_seq, filenames

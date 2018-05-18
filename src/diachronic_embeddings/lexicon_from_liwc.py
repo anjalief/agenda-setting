@@ -10,6 +10,9 @@ import argparse
 from gensim.models import KeyedVectors
 import re
 from utils import *
+import sys
+sys.path.append("..")
+from article_utils import get_files_by_time_slice
 
 # for parallelizing
 import multiprocessing
@@ -35,7 +38,8 @@ def build_lex(vocab_word):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model_path", default="/usr1/home/anjalief/russian_model_cache")
+    parser.add_argument("--model_path", default="/usr1/home/anjalief/word_embed_cache/ner_model_cache")
+    parser.add_argument("--timestep", default="yearly")
     parser.add_argument("--liwc_file", default="/usr1/home/anjalief/corpora/russian/Russian_LIWC2007_Dictionary.dic")
     parser.add_argument("--liwc_key")
     parser.add_argument("--outfile", default="./tmp.txt")
@@ -48,10 +52,12 @@ def main():
     global LIWC_REG
     LIWC_REG = [re.compile(x.replace("*", ".*") + "$") for x in liwc_words]
 
-    for year in YEARS:
-        for month in MONTHS:
-            model_name = get_model_filename(args.model_path, year, month)
-            wv = KeyedVectors.load(model_name)
+    date_seq, filenames = get_files_by_time_slice(
+        args.model_path, args.timestep, suffix= "_" + args.timestep + ".pickle")
+
+    for filename_list in filenames:
+        for filename in filename_list:
+            wv = KeyedVectors.load(filename)
             for x in wv.index2entity:
                 vocab.add(x)
 
