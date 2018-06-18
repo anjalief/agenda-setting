@@ -13,7 +13,7 @@ sys.path.append("..")
 sys.path.append("../diachronic_embeddings")
 from article_utils import *
 from econ_utils import *
-from utils import get_corr
+
 import glob
 import math
 import itertools
@@ -103,10 +103,10 @@ def main():
 
     date_seq, filenames = get_files_by_time_slice(args.input_path, args.timestep)
 
-    econ_seq = load_econ_file(args.econ_file, args.timestep, date_seq)
-    for d,e in zip(date_seq, econ_seq):
-        print(d, e)
-    return
+    # econ_seq = load_econ_file(args.econ_file, args.timestep, date_seq)
+    # for d,e in zip(date_seq, econ_seq):
+    #     print(d, e)
+    # return
 
     tag = os.path.basename(os.path.dirname(args.input_path)).replace("*", "m") + "_"
 
@@ -126,7 +126,7 @@ def main():
     if not args.timestep in args.econ_file:
         print ("WARNING TIMESTEP DOES NOT MATCH ECON FILE")
 
-    econ_seq = load_econ_file(args.econ_file, args.timestep, date_seq)
+#    econ_seq = load_econ_file(args.econ_file, args.timestep, date_seq)
     # assert (len(econ_seq) == len(date_seq)), str(len(econ_seq)) + " " + str(len(date_seq))
 
 
@@ -171,8 +171,13 @@ def main():
     # econ_seq = difference(econ_seq)
 
 #    print (len(USA_seq), len(econ_seq))
-    for d,y,e in zip(date_seq, country_to_article_sequence["USA"], econ_seq):
-       print (e)
+    for d,y in zip(date_seq, country_to_article_sequence["USA"]):
+       print (d, y)
+
+    print("**************************")
+
+    for d,y in zip(date_seq, country_to_word_sequence["USA"]):
+       print (d, y)
     # print ("**************************************************************************")
     # print ("**************************************************************************")
     # for d,y in zip(date_seq, country_to_word_sequence["USA"]):

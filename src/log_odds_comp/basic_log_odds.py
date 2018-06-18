@@ -97,6 +97,17 @@ def LoadBackgroundCorpus(input_path, timestep = "monthly", cache_file_name = "ba
   return word_to_count
 
 
+def LoadSingleCorpus(files):
+  word_to_count = Counter()
+  for filename in files:
+    articles, _ = LoadArticles(filename)
+    for article in articles:
+      words = article.split()
+      word_to_count.update(make_counter(words))
+
+  return word_to_count
+
+
 def write_log_odds(counts1, counts2, prior, outfile_name = None):
     # COPIED FROM LOG_ODDS FILE
     sigmasquared = defaultdict(float)
@@ -145,11 +156,75 @@ def main():
     parser.add_argument("--keywords", default="./keywords.txt")
     parser.add_argument("--outfile_prefix", default="./Prev")
     parser.add_argument("--percent_change", default="/usr1/home/anjalief/corpora/russian/percent_change/russian_rtsi_rub.csv")
-    parser.add_argument("--input_path", default="/usr1/home/anjalief/corpora/russian/yearly_mod_subs/iz_lower/")
+    parser.add_argument("--input_path", default="/usr1/home/anjalief/corpora/russian/yearly_mod_subs/iz_lower/init_files/")
     args = parser.parse_args()
 
-#    good_dates, bad_dates = get_hardcoded_dates()
+
+    # Intersect with framing lexicons
+    prior = LoadBackgroundCorpus(args.input_path)
+
+    keywords = [l.strip() for l in open(args.keywords).readlines()]
+
     good_dates, bad_dates = get_month_prev(args.percent_change)
+
+    good_file_names = [os.path.join(args.input_path,
+                                    str(d.year) + "_" + str(d.month) + ".txt.tok")
+                       for d in good_dates]
+    bad_file_names = [os.path.join(args.input_path,
+                                   str(d.year) + "_" + str(d.month) + ".txt.tok")
+                      for d in bad_dates]
+    for x in good_dates:
+      print(x)
+
+    print("")
+    print("")
+    for x in bad_dates:
+      print(x)
+    print("")
+    print("")
+
+    good_e, good_i, good_e_count, good_i_count, good_count = \
+        LoadCountsExternal(good_file_names, keywords)
+
+    bad_e, bad_i, bad_e_count, bad_i_count, bad_count = \
+        LoadCountsExternal(bad_file_names, keywords)
+
+    frame_to_lex = pickle.load(open("frame_to_lex_final.pickle", "rb"))
+    delta = write_log_odds(good_e, bad_e, prior)
+
+    badest_1000 = sorted(delta, key=delta.get)[:2000]
+    bestest_1000 = sorted(delta, key=delta.get)[-2000:]
+    for f in frame_to_lex:
+        print(f)
+
+        for w in frame_to_lex[f]:
+            if w in badest_1000:
+                print ("Bad", w, delta[w])
+            if w in bestest_1000:
+                print("Good", w, delta[w])
+        print("")
+    return
+
+    # SUPER BASIC USED FOR BACKSTORY
+    if True:
+      # good_dates, bad_dates = get_month_just_after(args.percent_change)
+      # good_file_names = [os.path.join(args.input_path,
+      #                                 str(d.year) + "_" + str(d.month) + ".txt.tok")
+      #                    for d in good_dates]
+      # bad_file_names = [os.path.join(args.input_path,
+      #                                str(d.year) + "_" + str(d.month) + ".txt.tok")
+      #                   for d in bad_dates]
+      good_file_names = ["/usr1/home/anjalief/corpora/russian/yearly_mod_subs/iz_lower/2013.txt.tok"]
+      bad_file_names = ["/usr1/home/anjalief/corpora/russian/yearly_mod_subs/iz_lower/2014.txt.tok"]
+
+      prior = LoadBackgroundCorpus(args.input_path)
+      good_counts = LoadSingleCorpus(good_file_names)
+      bad_counts = LoadSingleCorpus(bad_file_names)
+      write_log_odds(good_counts, bad_counts, prior, "super_basic.txt")
+      return
+
+#    good_dates, bad_dates = get_hardcoded_dates()
+    good_dates, bad_dates = get_good_month_prev(args.percent_change)
 
     good_file_names = [os.path.join(args.input_path,
                                     str(d.year) + "_" + str(d.month) + ".txt.tok")
@@ -204,7 +279,7 @@ def main():
     # write_log_odds(good_i, good_e, prior)
     # write_log_odds(bad_i, good_i, prior )
 
-    frame_to_lex = pickle.load(open("frame_to_lex.pickle", "rb"))
+    frame_to_lex = pickle.load(open("frame_to_lex_final.pickle", "rb"))
     for f in frame_to_lex:
       print (f)
       print (frame_to_lex[f])

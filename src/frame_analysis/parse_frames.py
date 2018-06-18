@@ -21,7 +21,11 @@ def load_codes(filename):
     str_to_code = json.load(open(filename))
     return {float(k) : str_to_code[k] for k in str_to_code}
 
-def words_to_pmi(background_counter, corpus_count, code_counter):
+# Takes in a counter over all words in corpus
+# # of tokens in corpus (corpus_count)
+# A counter over words in target articles
+# Number of words to return
+def words_to_pmi(background_counter, corpus_count, code_counter, to_return_count = 100):
     frame_count = sum([code_counter[k] for k in code_counter])
 
     word_to_pmi = {}
@@ -40,19 +44,20 @@ def words_to_pmi(background_counter, corpus_count, code_counter):
 
         word_to_pmi[word] = math.log(p_y_x / p_y)
 
-    return sorted(word_to_pmi, key=word_to_pmi.get, reverse=True)[:100]
+    return sorted(word_to_pmi, key=word_to_pmi.get, reverse=True)[:to_return_count]
 
 
-def seeds_to_real_lex(raw_lex, model_name, vocab):
+def seeds_to_real_lex(raw_lex, model_name, vocab, code = ""):
     wv = KeyedVectors.load(model_name)
     filtered_seeds = [k for k in raw_lex if k in vocab and k in wv]
 
     if len(filtered_seeds) < 50:
-        print ("WARNING: low seeds for code", len(filtered_seeds))
+        print ("WARNING: low seeds for code", len(filtered_seeds), code)
 
-    expanded_seeds = [x[0] for x in wv.most_similar(positive=filtered_seeds, topn=200)]
-    final_lex = [k for k in expanded_seeds if k in vocab]
-    return final_lex
+    expanded_seeds = [x[0] for x in wv.most_similar(positive=filtered_seeds, topn=500) if x[1] >= 0.4]
+#    final_lex = [k for k in expanded_seeds if k in vocab]
+#     return final_lex
+    return expanded_seeds
 
 # Alternative idea: for each word in seed, take 10 NN and then
 # keep words closest to center of lex
@@ -65,19 +70,20 @@ def seeds_to_real_lex_v2(raw_lex, model_name, vocab):
 
     expanded_seeds = set()
     for k in filtered_seeds:
-        for x in wv.most_similar(positive=filtered_seeds, topn=100):
+        for x in wv.most_similar(positive=k, topn=200):
             expanded_seeds.add(x[0])
 
     center = get_center(expanded_seeds, wv, len(wv[vocab[0]]))
 
     # return closest -- smallest distance
     final_lex = sorted(expanded_seeds, key=lambda x: cosine(center, wv[x]))
+    print (len(final_lex))
     return final_lex[:300]
 
 def do_counts(input_files):
     corpus_counter = Counter()
     code_to_counter = defaultdict(Counter)
-    for filename in glob.iglob(input_files):
+    for filename in input_files:
         if "meta" in filename:
             continue
         if "code" in filename:
@@ -89,9 +95,7 @@ def do_counts(input_files):
             if not "framing" in annotated_file["annotations"]:
                 continue
             text = annotated_file["text"].lower()
-            # I think what we're doing with this is if two annotators mark the text, we add
-            # it to the counts twice. That's ok, we're more sure this is the right frame
-            # if two people marked it
+
             corpus_counter.update(tokenize.word_tokenize(text)) # Might want to add uncoded text to counter?
             for annotation_set in annotated_file["annotations"]["framing"]:
                 for frame in annotated_file["annotations"]["framing"][annotation_set]:
@@ -107,6 +111,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--input_files", default="/usr1/home/anjalief/corpora/media_frames_corpus/*.json")
     parser.add_argument("--model_name", default="/usr1/home/anjalief/word_embed_cache/yearly_mods/lowercased_more_years/2016_1_yearly.pickle")
+    parser.add_argument("--lex_cache", default="./frame_to_lex_v2_200.pickle")
     parser.add_argument("--article_glob", default="")
     parser.add_argument("--refresh", action='store_true')
     args = parser.parse_args()
@@ -120,7 +125,7 @@ def main():
         code_to_counter = pickle.load(open(cache_filename2, "rb"))
         code_to_str = pickle.load(open(cache_filename3, "rb"))
     else:
-        corpus_counter, code_to_counter,code_to_str = do_counts(args.input_files)
+        corpus_counter, code_to_counter,code_to_str = do_counts(glob.iglob(args.input_files))
         pickle.dump(corpus_counter, open(cache_filename1, "wb"))
         pickle.dump(code_to_counter, open(cache_filename2, "wb"))
         pickle.dump(code_to_str, open(cache_filename3, "wb"))
@@ -135,6 +140,10 @@ def main():
         if "primary" in code_to_str[c] or "headline" in code_to_str[c] or "primany" in code_to_str[c]:
             continue
         code_to_lex[c] = words_to_pmi(corpus_counter, corpus_count, code_to_counter[c])
+
+    for c in code_to_lex:
+        print (code_to_str[c], code_to_lex[c])
+    return
 
 
     # translate to Russian
@@ -168,7 +177,10 @@ def main():
     code_to_lex = {code_to_str[c]:seeds_to_real_lex(code_to_lex[c], args.model_name, vocab) for c in code_to_lex}
 
     print(code_to_lex)
-    pickle.dump(code_to_lex, open("frame_to_lex.pickle", "wb"))
+    for x in code_to_lex:
+        print (x)
+        print (code_to_lex[x], len(code_to_lex[x]))
+    pickle.dump(code_to_lex, open(args.lex_cache, "wb"))
 
 
 if __name__ == "__main__":

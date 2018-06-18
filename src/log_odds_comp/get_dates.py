@@ -76,6 +76,17 @@ def get_month_just_after(percent_change_file):
 
     return plus_month(prev_good), plus_month(prev_bad)
 
+def get_same_month(percent_change_file):
+    econ_seq = load_percent_change(percent_change_file)
+    sorted_econ = sorted(econ_seq, key=econ_seq.get)
+
+    # take top 10% as good months and bottom 10% as bad months
+    num = int(len(econ_seq) / 6)
+    prev_bad = sorted_econ[:num]
+    prev_good = sorted_econ[-num:]
+
+    return prev_good, prev_bad
+
 # We think news coverage changes in downturn
 # we should be looking at month before downturn and
 # month after downturn. What changed?
@@ -102,6 +113,26 @@ def get_month_prev(percent_change_file):
     # take month of downturn as "good" and next month as "bad"
     return prev_bad, plus_month(prev_bad)
 
+
+def get_good_month_prev(percent_change_file):
+    econ_seq = load_percent_change(percent_change_file)
+    sorted_econ = sorted(econ_seq, key=econ_seq.get)
+
+    # take top 10% as bad months and following 10% as good months
+    num = int(len(econ_seq) / 6)
+    prev_good = sorted_econ[-num:]
+
+    def plus_month(seq):
+        next_month = timedelta(days=31)
+        new_seq = []
+        for x in seq:
+            new_date = x + next_month
+            floored_date = date(new_date.year, new_date.month, 1)
+            new_seq.append(floored_date)
+        return new_seq
+
+    # take month of upturn as "bad" and next month as "good"
+    return plus_month(prev_good), prev_good
 
 # Take 15% of months, only let there be at most 2 files per year
 # in each set

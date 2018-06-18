@@ -128,14 +128,17 @@ import nltk
 tokenizer = nltk.data.load('tokenizers/punkt/english.pickle')
 #from russian_stemmer import country_russian_stemmer
 class SentenceIter(object):
-  def __init__(self, article_glob, verbose=True, new_article_token=NEW_ARTICLE_TOKEN):
+  def __init__(self, article_glob, verbose=True, new_article_token=NEW_ARTICLE_TOKEN, skip_corrections=False):
     self.article_glob = article_glob
     self.verbose = verbose
     self.new_article_token = new_article_token
+    self.skip_corrections = skip_corrections
 #    self.stemmer = country_russian_stemmer()
 
   def __iter__(self):
     for filename in glob.iglob(self.article_glob):
+      if self.skip_corrections and "Corrections" in filename:
+        continue
       if self.verbose:
         print("Loading:", filename)
       for article in ArticleIter(filename, self.new_article_token, self.verbose):

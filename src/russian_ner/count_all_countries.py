@@ -86,7 +86,7 @@ def main():
     assert(len(output) == len(date_seq))
     for d,o in zip(date_seq, output):
         # print (d,o[0], o[1], o[2], o[3], o[4], o[5], o[6])
-        print (o[5], o[6])
+        print (d, o[1], o[3])
 
 if __name__ == "__main__":
     main()
