@@ -81,9 +81,10 @@ class FrameHardSoftIter(object):
           yield tokenize.word_tokenize(text), frame_to_all, frame_to_any
 
 class BackgroundIter(object):
-  def __init__(self, input_files, verbose=False):
+  def __init__(self, input_files, verbose=False, sent_level=True):
       self.input_files = input_files
       self.verbose = verbose
+      self.sent_level = sent_level
 
   def __iter__(self):
       for filename in self.input_files:
@@ -91,8 +92,14 @@ class BackgroundIter(object):
               print("Loading:", filename)
 
           json_text = json.load(open(filename))
-          for sentence in json_text["BODY"]:
-              yield tokenize.word_tokenize(sentence.lower())
+          if not self.sent_level:
+              all_words = []
+              for sentence in json_text["BODY"]:
+                  all_words += tokenize.word_tokenize(sentence.lower())
+              yield all_words
+          else:
+              for sentence in json_text["BODY"]:
+                  yield tokenize.word_tokenize(sentence.lower())
 
 # This is super confusing but I think what we want is take the text
 # that uses a frame and take all text that doesn't use a frame
@@ -152,14 +159,21 @@ def get_sentence_level_test(json_text, all_frames):
 # split into train and test sets
 # First just do it once randomly
 # returns test_set, training set
-def get_random_split(input_files):
+def get_random_split(input_files, fold = 0, num_folds = 5, filter_tone = False):
+    random.seed(0)
     # first load all data
     all_text = load_json_as_list(input_files)
+    if filter_tone:
+      all_text = [t for t in all_text if t["primary_frame"] is not None and t["primary_tone"] is not None]
 
     # split is 80/20
     random.shuffle(all_text)
-    num_test = int(len(all_text) / 5)
-    return all_text[:num_test], all_text[num_test:]
+
+    num_test = int(len(all_text) / num_folds)
+    test_split_start = fold * num_test
+    test_split_end = test_split_start + num_test
+
+    return all_text[test_split_start:test_split_end], all_text[:test_split_start] + all_text[test_split_end:]
 
 # Then do stratified K-Fold for each frame seperately
 def get_per_frame_split(input_files, frame_short_form, fold_num=0):
@@ -192,23 +206,18 @@ def get_per_frame_split(input_files, frame_short_form, fold_num=0):
 def main():
   files = ["/usr1/home/anjalief/corpora/media_frames_corpus/samesex.json", "/usr1/home/anjalief/corpora/media_frames_corpus/tobacco.json", "/usr1/home/anjalief/corpora/media_frames_corpus/immigration.json"]
 #  get_random_split(files)
-  test_data, train_data = get_per_frame_split(files, 1.0)
+  test_data, train_data = get_random_split(files)
   count_in = 0
   count_total = 0
   train_count_in = 0
   train_count_total = 0
   for text, frames, _ in FrameAnnotationsIter(test_data):
       count_total += 1
-      if 1.0 in frames:
-          count_in += 1
 
   for text, frames, _ in FrameAnnotationsIter(train_data):
       train_count_total += 1
-      if 1.0 in frames:
-          train_count_in += 1
 
-  print("TEST COUNTS", count_in, count_total, count_in / float(count_total))
-  print("TRAIN COUNTS", train_count_in, train_count_total, train_count_in / float(train_count_total))
+  print(train_count_total + count_total)
 
 if __name__ == "__main__":
   main()

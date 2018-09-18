@@ -1,19 +1,14 @@
-
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 import argparse
-from replace_country_mentions import parse_subs_file
-from collections import defaultdict
+from collections import defaultdict, Counter
 import os
 import sys
 from datetime import date
 import pickle
-sys.path.append("..")
-sys.path.append("../diachronic_embeddings")
 from article_utils import *
 from econ_utils import *
-from utils import get_corr
 import glob
 import math
 import itertools
@@ -30,17 +25,24 @@ def count_mentions_in_articles(filenames, country_names):
     country_thrice_count = 0
     total_article_count = 0
     articles_weighted_by_words = 0
+
     for filename in filenames:
-        articles, _ = LoadArticles(filename)
-        total_article_count += len(articles)
+        articles, _ = LoadArticles(filename, verbose=False)
+#        total_article_count += len(articles)
         for article in articles:
             countries_in_article = 0
 
-            for w in article.split():
-                total_word_count += 1
-                if w in country_names:
-                    countries_in_article += 1
-                    country_word_count += 1
+            counter = Counter(article.lower().split())
+
+            if counter["usa"] < 2:
+                continue
+
+            total_article_count += 1
+
+            total_word_count += sum([counter[q] for q in counter])
+            for c in country_names:
+                countries_in_article += counter[c]
+                country_word_count += counter[c]
             if countries_in_article > 0:
                 country_article_count += 1
             if countries_in_article > 1:
@@ -54,7 +56,7 @@ def count_mentions_in_articles(filenames, country_names):
 def load_country_names(filename):
     names = []
     for line in open(filename).readlines():
-        names.append(line.split(",")[0].strip())
+        names.append(line.split(",")[0].strip().lower())
     return names
 
 def do_counts(files_grouped_by_date, subs_file):
@@ -68,25 +70,45 @@ def do_counts(files_grouped_by_date, subs_file):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--input_path', help="this guy needs a trailing backslash")
-    parser.add_argument('--subs_file', default="./external.txt")
-    # if we specify this, we just compute correlations for all countries in the list
-    parser.add_argument('--country_list_file')
-    parser.add_argument('--timestep', type=str,
+    parser.add_argument('--input_path', help="Directory where data files are. Must include trailing backslash", default="../data/Izvestiia_processed/")
+    parser.add_argument('--subs_file', help="File containing keywords to count", default="../data/usa.txt")
+    parser.add_argument('--word_level', help="Print word-level counts instead of article-level counts", action='store_true')
+    parser.add_argument('--timestep', type=str, help="specify what time increment to use for aggregating articles",
                         default='monthly',
-                        choices=['monthly', 'quarterly', 'yearly'])
-    parser.add_argument('--refresh', action='store_true')
-    parser.add_argument("--econ_file", default="/usr1/home/anjalief/corpora/russian/russian_monthly_gdp.csv")
-#    parser.add_argument("--rtsi_file", default="/usr1/home/anjalief/corpora/russian/russian_rtsi_rub.csv")
+                        choices=['monthly', 'quarterly', 'semi', 'yearly'])
+    parser.add_argument("--econ_file", help="If you specify this, output will include compute correlation of counts with econ series (does NOT work for yearly)")
     args = parser.parse_args()
 
     date_seq, filenames = get_files_by_time_slice(args.input_path, args.timestep)
     output = do_counts(filenames, args.subs_file)
 
     assert(len(output) == len(date_seq))
+
+    # Default is article level
+    count_idx=1
+    total_idx=3
+
+    # Word level
+    if args.word_level:
+        count_idx=-3
+        total_idx=-1
+
     for d,o in zip(date_seq, output):
-        # print (d,o[0], o[1], o[2], o[3], o[4], o[5], o[6])
-        print (d, o[1], o[3])
+        print (d, o[count_idx], o[total_idx], o[count_idx] / o[total_idx])
+
+    # if we're missing econ data, this will just die
+    if  args.econ_file:
+        ratios = [o[count_idx] / o[total_idx] for o in output]
+
+        # We skip 2016 for yearly
+        if args.timestep == "yearly":
+            ratios = ratios[:-1]
+            date_seq = date_seq[:-1]
+
+        econ_seq = load_econ_file(args.econ_file, args.timestep, date_seq)
+
+
+        print(get_corr(econ_seq, ratios))
 
 if __name__ == "__main__":
     main()

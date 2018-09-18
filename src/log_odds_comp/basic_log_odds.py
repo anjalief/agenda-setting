@@ -157,6 +157,7 @@ def main():
     parser.add_argument("--outfile_prefix", default="./Prev")
     parser.add_argument("--percent_change", default="/usr1/home/anjalief/corpora/russian/percent_change/russian_rtsi_rub.csv")
     parser.add_argument("--input_path", default="/usr1/home/anjalief/corpora/russian/yearly_mod_subs/iz_lower/init_files/")
+    parser.add_argument("--framing_lex", default="frame_to_lex_final.pickle")
     args = parser.parse_args()
 
 
@@ -189,7 +190,7 @@ def main():
     bad_e, bad_i, bad_e_count, bad_i_count, bad_count = \
         LoadCountsExternal(bad_file_names, keywords)
 
-    frame_to_lex = pickle.load(open("frame_to_lex_final.pickle", "rb"))
+    frame_to_lex = pickle.load(open(args.framing_lex, "rb"))
     delta = write_log_odds(good_e, bad_e, prior)
 
     badest_1000 = sorted(delta, key=delta.get)[:2000]

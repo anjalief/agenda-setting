@@ -9,6 +9,7 @@ from datetime import date
 from collections import defaultdict
 
 NEW_ARTICLE_TOKEN="NEW - ARTICLE - TOKEN"
+AUTHOR_TOKEN="Автор :"
 
 YEARS = ["2003", "2004", "2005", "2006", "2007", "2008", "2009",
          "2010", "2011", "2012", "2013", "2014", "2015", "2016"]
@@ -57,7 +58,7 @@ def ArticleIter(filename, new_article_token, verbose=False):
     line = line.strip()
     if not line:
       continue
-    if line == new_article_token:
+    if line.startswith(new_article_token):
       if current_article:
         yield "\n".join(current_article)
         current_article = []
