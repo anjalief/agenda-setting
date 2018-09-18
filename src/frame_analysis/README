@@ -1,0 +1,13 @@
+Main pipeline:
+params.py -- control parameters for lexicon generation
+parse_frames.py -- create Russian framing lexicons
+cross_eval_frames.py -- create English frames AND do cross fold evaluation on MFC subsets
+                     Paper results: python cross_eval_frames.py --split_type dcard
+russian_pmi.py -- measure salience of frames in Russian articles (for framing lexicons created by parse_frames.py)
+make_russian_tea.py -- create annotation sets for Intruder Detection Evaluation task
+baseline.py -- logistics regression BOW baseline for finding all frames in article
+
+OTHER:
+eval_frames.py -- create English frames AND do evalulations on MFC
+primary_baseline.py -- logistic regression BOW over primary frames
+compare_to_stm.py -- measure correlations between STM outputs and framing lexicon outputs

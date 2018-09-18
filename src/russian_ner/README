@@ -1,0 +1,11 @@
+
+MAIN METHODS:
+cleanse_russian_countries.py -- run Texterra API to get NER tags; cache NER-tagged articles
+get_ner_tags.py -- pull NER tags from cached output of cleanse_russian_countries.py and organize in file]
+
+[ Manually clean up NER tag list and create subs file, i.e. subs_files/cleaned_round3.txt ]
+  "cleaup.py" and "scracth.py" helper scripts used to clean up subs file
+
+replace_country_mentions.py -- use subs file to do repalcement of country mentions in text
+
+count_all_countries.py -- counts number of mentions of each word in input file; (inputs might be usa.txt or external.txt)

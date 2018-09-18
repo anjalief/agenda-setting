@@ -4,3 +4,6 @@ topic_stats
 *~
 models
 data/focused_crawl/russian/*.lda
+src/*/*/*.pickle
+src/*/*.pickle
+data/annotations

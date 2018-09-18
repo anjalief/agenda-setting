@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+# Main file for actually running Russian taggers
 
 import sys
 sys.path.append("..")
